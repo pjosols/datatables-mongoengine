@@ -13,7 +13,7 @@ from mongoengine import QuerySet
 
 
 class DataTablesManager(QuerySet):
-    """Mixin for connecting DataTables to MongoDB with MongoEngine."""
+    """QuerySet class for connecting DataTables to MongoDB with MongoEngine."""
 
     def __init__(self, document, collection):
         super().__init__(document, collection)
