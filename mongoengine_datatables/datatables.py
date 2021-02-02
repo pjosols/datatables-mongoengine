@@ -48,14 +48,18 @@ class DataTablesManager(QuerySet):
         return column_search
 
     @property
-    def _dt_aggregate(self):
+    def _dt_match(self):
         match = dict()
         match.update(self._dt_global_search)
         match.update(self._dt_column_search)
         match.update(self._dt_custom_filter)
+        return match
+
+    @property
+    def _dt_aggregate(self):
         projection = {key: {"$ifNull": ["$" + key, ""]} for key in self._dt_columns}
         pipeline = [
-            {"$match": match},
+            {"$match": self._dt_match},
             {"$sort": {self._dt_order_column: self._dt_order_direction}},
             {"$skip": self._dt_data["start"]},
             {"$project": projection},
@@ -64,7 +68,7 @@ class DataTablesManager(QuerySet):
         return list(self.aggregate(pipeline))
 
     @property
-    def _data(self):
+    def _dt_data_out(self):
         """Clean the aggregate results for DataTables.
 
         Note that using `json.dumps` on some types means they display properly
@@ -79,6 +83,10 @@ class DataTablesManager(QuerySet):
                 if type(val) in [list, dict, float]:
                     d[key] = json.dumps(val, default=str)
         return data_out
+
+    @property
+    def _dt_filtered_count(self):
+        return len(list(self.aggregate([{"$match": self._dt_match}])))
 
     def datatables(self, data, **custom_filter):
         """Method to get results for DataTables.
@@ -104,10 +112,11 @@ class DataTablesManager(QuerySet):
         self._dt_terms_without_colon = [
             term for term in search_terms if term.count(":") != 1
         ]
+        data_out = self._dt_data_out
 
         return {
-            "recordsTotal": str(self.count()),
-            "recordsFiltered": str(len(self._data)),
+            "recordsTotal": self.count(),
+            "recordsFiltered": self._dt_filtered_count,
             "draw": int(data["draw"]),
-            "data": self._data,
+            "data": data_out,
         }

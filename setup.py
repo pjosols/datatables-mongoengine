@@ -6,7 +6,7 @@ def readme():
         return f.read()
 
 setup(name='mongoengine_datatables',
-      version='0.1.1',
+      version='0.1.2',
       description='Mixin for connecting DataTables to MongoDB with MongoEngine.',
       long_description=readme(),
       url='https://github.com/pauljolsen/mongoengine-datatables',
