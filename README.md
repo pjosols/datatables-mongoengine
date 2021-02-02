@@ -1,6 +1,8 @@
 # MongoEngine Datatables
 
-
+The `DataTablesManager` class can be used instead of the default MongoEngine
+`QuerySet` class to add a `datatables` method for returning results as required by the
+jQuery plugin DataTables.
 
 #### Installation
  
