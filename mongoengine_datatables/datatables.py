@@ -20,7 +20,6 @@ class DataTablesManager(QuerySet):
 
         Args:
             data (dict): The data as sent by DataTables' server-side ajax call.
-            stringify (list): List of types to json.dumps
             **custom_filter: A dict of key/val pairs for injecting to MongoDB search.
 
         Returns:
