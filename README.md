@@ -4,12 +4,16 @@ The `DataTablesManager` class can be used instead of the default MongoEngine
 `QuerySet` class to add a `datatables` method for returning results as required by the
 jQuery plugin DataTables.
 
-#### Installation
+## Installation
  
     pip install git+git://github.com/pauljolsen/mongoengine-datatables.git@v0.1.0
     
+
+## Example
+
+Here's an example for Flask.
     
-#### Sample model
+#### models.py
 
     from mongoengine import Document, StringField
     from mongoengine_datatables import DataTablesManager
@@ -26,35 +30,38 @@ jQuery plugin DataTables.
         name = StringField()
         category = StringField()
         link = StringField()
+        group = ListField()
 
 
-#### Sample route
+#### routes.py
 
     from flask import request, g, jsonify
     
-    from app.links import links
-    from app.links.models import Links
+    from app import app
+    from app.models import Links
     
     
-    @links.route("/ajax/links", methods=["POST"])
+    @app.route("/ajax/links", methods=["POST"])
     def ajax_links():
         """Get results from MongoDB for DataTables."""
         
-        results = Links.objects.datatables(
-            data=request.get_json(), 
-            Group=g.user.group.name
-            )
+        data = request.get_json()
+        custom_filter = {
+            'group': g.user.group
+        }
+        
+        results = Links.objects.datatables(data, **custom_filter)
         return jsonify(results)
 
 
-#### Sample DataTables
+#### app.js
 
     $(document).ready( function () {
         $('#example').DataTable({
             processing: true,
             serverSide: true,
             ajax: {
-                url: '/links/ajax/links',
+                url: '/ajax/links',
                 dataSrc: 'data',
                 type: 'POST',
                 contentType: 'application/json',
