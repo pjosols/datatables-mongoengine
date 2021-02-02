@@ -53,6 +53,9 @@ Here's an example for Flask.
         results = Links.objects.datatables(data, **custom_filter)
         return jsonify(results)
 
+Note that you can inject any filter you want server-side, like I do above to make sure
+the results all match the current user's group.
+
 
 #### app.js
 
