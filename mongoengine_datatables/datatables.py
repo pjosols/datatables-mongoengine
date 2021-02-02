@@ -15,6 +15,71 @@ from mongoengine import QuerySet
 class DataTablesManager(QuerySet):
     """Mixin for connecting DataTables to MongoDB with MongoEngine."""
 
+    def __init__(self, document, collection):
+        super().__init__(document, collection)
+        self._dt_columns = None
+        self._dt_terms_without_colon = None
+        self._dt_limit = None
+        self._dt_terms_with_colon = None
+        self._dt_custom_filter = None
+        self._dt_order_column = None
+        self._dt_order_direction = None
+        self._dt_data = None
+
+    @property
+    def _dt_global_search(self):
+        and_filter = [
+            {
+                "$or": [
+                    {column: {"$regex": term, "$options": "i"}}
+                    for column in self._dt_columns
+                ]
+            }
+            for term in self._dt_terms_without_colon
+        ]
+        return {"$and": and_filter} if and_filter else {}
+
+    @property
+    def _dt_column_search(self):
+        column_search = dict()
+        for term in self._dt_terms_with_colon:
+            col, term = term.split(":")
+            column_search.update({col: {"$regex": term, "$options": "i"}})
+        return column_search
+
+    @property
+    def _dt_aggregate(self):
+        match = dict()
+        match.update(self._dt_global_search)
+        match.update(self._dt_column_search)
+        match.update(self._dt_custom_filter)
+        projection = {key: {"$ifNull": ["$" + key, ""]} for key in self._dt_columns}
+        pipeline = [
+            {"$match": match},
+            {"$sort": {self._dt_order_column: self._dt_order_direction}},
+            {"$skip": self._dt_data["start"]},
+            {"$project": projection},
+            {"$limit": self._dt_limit},
+        ]
+        return list(self.aggregate(pipeline))
+
+    @property
+    def _data(self):
+        """Clean the aggregate results for DataTables.
+
+        Note that using `json.dumps` on some types means they display properly
+        in the table, but you'll have to remove those lines if you want to access
+        an embedded key like `key.embedded_key`.
+
+        """
+        data_out = self._dt_aggregate
+        for d in data_out:
+            d["DT_RowId"] = str(d.pop("_id"))
+            for key, val in d.items():
+                if type(val) in [list, dict, float]:
+                    d[key] = json.dumps(val, default=str)
+        return data_out
+
     def datatables(self, data, **custom_filter):
         """Method to get results for DataTables.
 
@@ -23,60 +88,26 @@ class DataTablesManager(QuerySet):
             **custom_filter: A dict of key/val pairs for injecting to MongoDB search.
 
         Returns:
-            dict with data and meta required by DataTables. Note it doesn't return
-            a QuerySet, which might be breaking some MongoEngine rules.
+            dict with data and meta required by DataTables.
+
         """
-        columns = [column["data"] for column in data["columns"]]
-        limit = None if data["length"] == -1 else data["length"]
-        order_direction = {"asc": 1, "desc": -1}[data["order"][0]["dir"]]
-        order_column = columns[data["order"][0]["column"]]
+        self._dt_custom_filter = custom_filter
+        self._dt_data = data
+        self._dt_columns = [column["data"] for column in data["columns"]]
+        self._dt_limit = None if data["length"] == -1 else data["length"]
+        self._dt_order_direction = {"asc": 1, "desc": -1}[data["order"][0]["dir"]]
+        self._dt_order_column = self._dt_columns[data["order"][0]["column"]]
         search_terms = data["search"]["value"].split()
-        terms_with_colon = [term for term in search_terms if term.count(":") == 1]
-        terms_without_colon = [term for term in search_terms if term.count(":") != 1]
-        projection = {key: {"$ifNull": ["$" + key, ""]} for key in columns}
-
-        # Build the global search--a list comprehension within a list comprehension
-        and_filter = [
-            {"$or": [{column: {"$regex": term, "$options": "i"}} for column in columns]}
-            for term in terms_without_colon
+        self._dt_terms_with_colon = [
+            term for term in search_terms if term.count(":") == 1
         ]
-        global_search = {"$and": and_filter} if and_filter else {}
-
-        # Build the specific column search
-        column_search = dict()
-        for term in terms_with_colon:
-            col, term = term.split(":")
-            column_search.update({col: {"$regex": term, "$options": "i"}})
-
-        # Build the match filter
-        match = dict()
-        match.update(global_search)
-        match.update(column_search)
-        match.update(custom_filter)
-
-        # Build the aggregation pipeline
-        pipeline = [
-            {"$match": match},
-            {"$sort": {order_column: order_direction}},
-            {"$skip": data["start"]},
-            {"$project": projection},
-            {"$limit": limit},
+        self._dt_terms_without_colon = [
+            term for term in search_terms if term.count(":") != 1
         ]
-
-        # Query for results
-        data_out = list(self.aggregate(pipeline))
-        for d in data_out:
-            d["DT_RowId"] = str(d.pop("_id"))
-
-            # This is optional but lets these types display properly.
-            # Remove if you want to access an embedded key like `key.embedded_key`.
-            for key, val in d.items():
-                if type(val) in [list, dict, float]:
-                    d[key] = json.dumps(val, default=str)
 
         return {
             "recordsTotal": str(self.count()),
-            "recordsFiltered": str(len(data_out)),
+            "recordsFiltered": str(len(self._data)),
             "draw": int(data["draw"]),
-            "data": data_out,
+            "data": self._data,
         }
