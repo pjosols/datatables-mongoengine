@@ -15,7 +15,7 @@ Here's an example for Flask.
     
 #### models.py
 
-    from mongoengine import Document, StringField
+    from mongoengine import Document, StringField, ListField
     from mongoengine_datatables import DataTablesManager
     
 
@@ -24,7 +24,6 @@ Here's an example for Flask.
     
         meta = {
             "collection": "links_links",
-            "strict": False,
             "queryset_class": DataTablesManager
         }
         name = StringField()
