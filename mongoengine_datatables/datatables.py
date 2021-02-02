@@ -70,7 +70,7 @@ class DataTablesManager(QuerySet):
             d["DT_RowId"] = str(d.pop("_id"))
 
             # This is optional but lets these types display properly.
-            # Comment if you want to access an embedded key like `key.embedded_key`.
+            # Remove if you want to access an embedded key like `key.embedded_key`.
             for key, val in d.items():
                 if type(val) in [list, dict, float]:
                     d[key] = json.dumps(val, default=str)
