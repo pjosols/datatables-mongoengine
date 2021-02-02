@@ -6,7 +6,7 @@ jQuery plugin DataTables.
 
 ## Installation
  
-    pip install git+git://github.com/pauljolsen/mongoengine-datatables.git@v0.1.2
+    pip install git+git://github.com/pauljolsen/mongoengine-datatables.git@v0.1.3
     
 
 ## Example

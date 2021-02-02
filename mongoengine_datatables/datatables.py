@@ -85,6 +85,11 @@ class DataTablesManager(QuerySet):
         return data_out
 
     @property
+    def _dt_total_count(self):
+        """Our 'total' should be filtered by any custom filter applied server-side."""
+        return len(list(self.aggregate([{"$match": self._dt_custom_filter}])))
+
+    @property
     def _dt_filtered_count(self):
         return len(list(self.aggregate([{"$match": self._dt_match}])))
 
@@ -99,7 +104,7 @@ class DataTablesManager(QuerySet):
             dict with data and meta required by DataTables.
 
         """
-        self._dt_custom_filter = custom_filter
+        self._dt_custom_filter = custom_filter or {}
         self._dt_data = data
         self._dt_columns = [column["data"] for column in data["columns"]]
         self._dt_limit = None if data["length"] == -1 else data["length"]
@@ -115,7 +120,7 @@ class DataTablesManager(QuerySet):
         data_out = self._dt_data_out
 
         return {
-            "recordsTotal": self.count(),
+            "recordsTotal": self._dt_total_count,
             "recordsFiltered": self._dt_filtered_count,
             "draw": int(data["draw"]),
             "data": data_out,
