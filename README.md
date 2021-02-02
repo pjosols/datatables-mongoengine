@@ -24,7 +24,6 @@ Here's an example for Flask.
     
         meta = {
             "collection": "links_links",
-            "strict": False,
             "queryset_class": DataTablesManager
         }
         name = StringField()
