@@ -2,7 +2,7 @@
 
 The `DataTablesManager` class can be used instead of the default MongoEngine
 `QuerySet` class to add a `datatables` method for returning results as required by the
-jQuery plugin DataTables.  This is based on my original `mongo-datatables` package.
+jQuery plugin DataTables.
 
 ## Installation
  
@@ -20,10 +20,9 @@ Here's an example for Flask.
     
 
     class Links(Document):
-        """The MongoEngine ODM class for the links_links collection."""
+        """The MongoEngine ODM class for the links collection."""
     
         meta = {
-            "collection": "links_links",
             "queryset_class": DataTablesManager
         }
         name = StringField()
