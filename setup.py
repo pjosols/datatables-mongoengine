@@ -8,8 +8,8 @@ def readme():
 
 setup(
     name="datatables_mongoengine",
-    version="0.1.5",
-    description="Mixin for connecting DataTables to MongoDB with MongoEngine.",
+    version="0.1.6",
+    description="MongoEngine QuerySet class for populating DataTables from MongoEngine.",
     long_description=readme(),
     url="https://github.com/pauljolsen/mongoengine-datatables",
     author="Paul Olsen",
