@@ -16,7 +16,7 @@ Here's an example for Flask.
 #### models.py
 
     from mongoengine import Document, StringField, ListField
-    from mongoengine_datatables import DataTablesManager
+    from datatables_mongoengine import DataTablesManager
     
 
     class Links(Document):
