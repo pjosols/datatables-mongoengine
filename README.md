@@ -13,7 +13,7 @@ jQuery plugin DataTables.
 
 Here's an example for Flask.
     
-#### models.py
+### models.py
 
     from mongoengine import Document, StringField, ListField
     from datatables_mongoengine import DataTablesManager
@@ -31,7 +31,7 @@ Here's an example for Flask.
         group = ListField()
 
 
-#### routes.py
+### routes.py
 
     from flask import request, g, jsonify
     
@@ -55,7 +55,7 @@ Note that you can inject any filter you want server-side, like I do above to mak
 the results all match the current user's group.
 
 
-#### app.js
+### app.js
 
     $(document).ready( function () {
         $('#example').DataTable({
@@ -78,7 +78,7 @@ the results all match the current user's group.
         });
 
 
-#### A note about flask-mongoengine
+### A note about flask-mongoengine
 
 If you're using flask-mongoengine but overriding the default QuerySet class like above,
 you'll lose a few nice things like the `get_or_404` method, which works like Django's 
