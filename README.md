@@ -4,6 +4,10 @@ The `DataTablesManager` class can be used instead of the default MongoEngine
 `QuerySet` class to add a `datatables` method for returning results as required by the
 jQuery plugin DataTables.
 
+## Performance Issues
+
+I have seen performance issues with this for large collections. The mongo-datatables package performs much better!
+
 ## Installation
  
     pip install datatables-mongoengine
