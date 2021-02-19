@@ -1,7 +1,3 @@
-# Beware performance issues
-I have seen performance issues with this for large collections. The mongo-datatables package performs much better!
-
-
 # DataTables with MongoEngine
 
 The `DataTablesManager` class can be used instead of the default MongoEngine
